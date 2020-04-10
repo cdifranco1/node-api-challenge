@@ -41,7 +41,6 @@ router.post('/', validateAction, validateProjectId, async (req, res) => {
   }
 })
 
-
 //update an action
 router.put('/:id', validateAction, validateActionId, validateProjectId, async (req, res) => {
   try {
@@ -52,10 +51,18 @@ router.put('/:id', validateAction, validateActionId, validateProjectId, async (r
   }
 })
 
-
-//delete a project
-router.delete('/:id', )
-
+//delete an action
+router.delete('/:id', validateProjectId, validateActionId, async (req, res) => {
+  try {
+    const count = await actionsDb.remove(req.params.id)
+    if (count > 0) {
+      const updatedActions = await actionsDb.get()
+      res.status(200).json(updatedActions)
+    }
+  } catch {
+    res.status(500).json({ message: "Could not remove action with specified ID."})
+  }
+})
 
 //middleware 
 
@@ -77,7 +84,7 @@ async function validateProjectId(req, res, next){
   }
 }
 
-async function validateAction(req, res, next){
+function validateAction(req, res, next){
   if (!req.body){
     res.status(404).json({ message: "Please provide action to insert."})
   } else if (!req.body.project_id || !req.body.description || !req.body.notes) {
